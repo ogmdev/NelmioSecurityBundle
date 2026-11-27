@@ -141,7 +141,7 @@ final class DirectiveSet
                 // In case the browsers support CSP level 2, it would discard the 'unsafe-inline' directive
                 // let's ensure that it's backward compatible with CSP level 1 (all browsers are not compatible)
                 // this is the recommended way to deal with this.
-                if (false === strpos($value, '\'unsafe-inline\'') && $this->level1Fallback) {
+                if (!str_contains($value, '\'unsafe-inline\'') && $this->level1Fallback) {
                     $policy[] = $name.' '.$value.' \'unsafe-inline\' '.$signatures[$name];
                 } else {
                     $policy[] = $name.' '.$value.' '.$signatures[$name];
@@ -155,7 +155,7 @@ final class DirectiveSet
             $defaultSrc = $this->getDirective('default-src');
             $isDefaultSrcSet = '' !== $defaultSrc && true !== $defaultSrc;
 
-            if ($isDefaultSrcSet && false === strpos($defaultSrc, '\'unsafe-inline\'')) {
+            if ($isDefaultSrcSet && !str_contains($defaultSrc, '\'unsafe-inline\'')) {
                 $unsafeInline = $this->level1Fallback ? ' \'unsafe-inline\'' : '';
 
                 if (!isset($this->directiveValues['script-src']) && isset($signatures['script-src'])) {

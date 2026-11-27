@@ -14,18 +14,14 @@ declare(strict_types=1);
 namespace Nelmio\SecurityBundle\Tests\Listener;
 
 use Nelmio\SecurityBundle\EventListener\XssProtectionListener;
-use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
+use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * @group legacy
- */
+#[IgnoreDeprecations]
 class XssProtectionListenerTest extends ListenerTestCase
 {
-    use ExpectDeprecationTrait;
-
     /**
      * @dataProvider provideLegacyVariousConfigs
      */

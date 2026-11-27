@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Nelmio\SecurityBundle\Tests\Functional;
 
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Nelmio\SecurityBundle\Tests\ExceptionHandlerRestoringWebTestCase;
 
-final class PermissionsPolicyTest extends WebTestCase
+final class PermissionsPolicyTest extends ExceptionHandlerRestoringWebTestCase
 {
     public function testHasHeaders(): void
     {

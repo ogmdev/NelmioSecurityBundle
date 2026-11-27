@@ -15,7 +15,6 @@
 
     <php>
         <env name="KERNEL_CLASS" value="Nelmio\SecurityBundle\Tests\App\AppKernel"/>
-        <env name="SYMFONY_DEPRECATIONS_HELPER" value="max[self]=0"/>
     </php>
 
     <source>
@@ -25,6 +24,6 @@
     </source>
 
     <extensions>
-        <bootstrap class="Symfony\Bridge\PhpUnit\SymfonyExtension"/>
+        <bootstrap class="Nelmio\SecurityBundle\Tests\PhpUnit\FailOnSelfDeprecationsExtension"/>
     </extensions>
 </phpunit>

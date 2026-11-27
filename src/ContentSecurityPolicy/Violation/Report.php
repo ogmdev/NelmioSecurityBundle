@@ -120,7 +120,7 @@ final class Report
             return false;
         }
 
-        if (0 === strpos($uri, 'data:')) {
+        if (str_starts_with($uri, 'data:')) {
             return true;
         }
 

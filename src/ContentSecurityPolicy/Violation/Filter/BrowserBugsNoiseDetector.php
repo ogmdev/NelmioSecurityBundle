@@ -64,7 +64,7 @@ final class BrowserBugsNoiseDetector implements NoiseDetectorInterface
         // should be allowed as in Chrome
         if (
             ($sourceFile = $report->getSourceFile()) !== null
-            && (0 === strpos($sourceFile, 'safari-extension://') || 'moz-extension' === $sourceFile)
+            && (str_starts_with($sourceFile, 'safari-extension://') || 'moz-extension' === $sourceFile)
         ) {
             return true;
         }

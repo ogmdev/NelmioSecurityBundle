@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nelmio\SecurityBundle\Tests\DependencyInjection;
 
 use Nelmio\SecurityBundle\DependencyInjection\Configuration;
+use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
@@ -220,9 +221,7 @@ class ConfigurationTest extends TestCase
         );
     }
 
-    /**
-     * @group legacy
-     */
+    #[IgnoreDeprecations]
     public function testLegacyXssProtection(): void
     {
         $config = $this->processYamlConfiguration(

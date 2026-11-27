@@ -20,6 +20,7 @@ use Nelmio\SecurityBundle\ContentSecurityPolicy\NonceGeneratorInterface;
 use Nelmio\SecurityBundle\ContentSecurityPolicy\PolicyManager;
 use Nelmio\SecurityBundle\ContentSecurityPolicy\ShaComputerInterface;
 use Nelmio\SecurityBundle\EventListener\ContentSecurityPolicyListener;
+use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Stub;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -466,6 +467,7 @@ class ContentSecurityPolicyListenerTest extends ListenerTestCase
         );
     }
 
+    #[IgnoreDeprecations]
     public function testLegacyConstructorCreatesDirectiveSetBuilder(): void
     {
         $reportDirectiveSet = new DirectiveSet(new PolicyManager());

@@ -14,12 +14,12 @@ declare(strict_types=1);
 namespace Nelmio\SecurityBundle\Tests\Test;
 
 use Nelmio\SecurityBundle\Test\SecurityHeadersAssertionsTrait;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Nelmio\SecurityBundle\Tests\ExceptionHandlerRestoringWebTestCase;
 
 /**
  * Tests for the SecurityHeadersAssertionsTrait assertion methods.
  */
-final class SecurityHeadersAssertionsTraitTest extends WebTestCase
+final class SecurityHeadersAssertionsTraitTest extends ExceptionHandlerRestoringWebTestCase
 {
     use SecurityHeadersAssertionsTrait;
 

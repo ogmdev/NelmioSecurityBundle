@@ -113,7 +113,7 @@ final class ExternalRedirectListener
                 $parameters[$this->forwardAs] = $response->headers->get('Location');
             }
 
-            if (false === strpos($this->override, '/')) {
+            if (!str_contains($this->override, '/')) {
                 if (null === $this->generator) {
                     throw new \UnexpectedValueException('The listener needs a router/UrlGeneratorInterface object to override invalid redirects with routes');
                 }
@@ -121,7 +121,7 @@ final class ExternalRedirectListener
             } else {
                 $query = '';
                 if (\count($parameters) > 0) {
-                    $query = (false === strpos($this->override, '?')) ? '?' : '&';
+                    $query = (!str_contains($this->override, '?')) ? '?' : '&';
                     $query .= http_build_query($parameters, '', '&');
                 }
                 $response->headers->set('Location', $this->override.$query);

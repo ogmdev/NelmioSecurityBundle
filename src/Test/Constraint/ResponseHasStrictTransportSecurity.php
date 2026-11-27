@@ -65,17 +65,17 @@ final class ResponseHasStrictTransportSecurity extends Constraint
         }
 
         // Check max-age
-        if (false === strpos($headerValue, \sprintf('max-age=%d', $this->maxAge))) {
+        if (!str_contains($headerValue, \sprintf('max-age=%d', $this->maxAge))) {
             return false;
         }
 
         // Check includeSubDomains
-        if ($this->includeSubDomains && false === strpos($headerValue, 'includeSubDomains')) {
+        if ($this->includeSubDomains && !str_contains($headerValue, 'includeSubDomains')) {
             return false;
         }
 
         // Check preload
-        if ($this->preload && false === strpos($headerValue, 'preload')) {
+        if ($this->preload && !str_contains($headerValue, 'preload')) {
             return false;
         }
 
@@ -111,15 +111,15 @@ final class ResponseHasStrictTransportSecurity extends Constraint
 
         $issues = [];
 
-        if (false === strpos($headerValue, \sprintf('max-age=%d', $this->maxAge))) {
+        if (!str_contains($headerValue, \sprintf('max-age=%d', $this->maxAge))) {
             $issues[] = \sprintf('max-age should be %d', $this->maxAge);
         }
 
-        if ($this->includeSubDomains && false === strpos($headerValue, 'includeSubDomains')) {
+        if ($this->includeSubDomains && !str_contains($headerValue, 'includeSubDomains')) {
             $issues[] = 'should include includeSubDomains';
         }
 
-        if ($this->preload && false === strpos($headerValue, 'preload')) {
+        if ($this->preload && !str_contains($headerValue, 'preload')) {
             $issues[] = 'should include preload';
         }
 

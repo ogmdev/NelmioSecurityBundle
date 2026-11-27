@@ -104,7 +104,7 @@ final class ResponseHasContentSecurityPolicy extends Constraint
         // Check required directives
         if (null !== $this->requiredDirectives) {
             foreach ($this->requiredDirectives as $directive) {
-                if (false === strpos($cspValue, $directive)) {
+                if (!str_contains($cspValue, $directive)) {
                     return false;
                 }
             }
@@ -112,14 +112,14 @@ final class ResponseHasContentSecurityPolicy extends Constraint
 
         // Check values that must be present
         foreach ($this->contains as $value) {
-            if (false === strpos($cspValue, $value)) {
+            if (!str_contains($cspValue, $value)) {
                 return false;
             }
         }
 
         // Check values that must NOT be present
         foreach ($this->notContains as $value) {
-            if (false !== strpos($cspValue, $value)) {
+            if (str_contains($cspValue, $value)) {
                 return false;
             }
         }
@@ -162,7 +162,7 @@ final class ResponseHasContentSecurityPolicy extends Constraint
         if (null !== $this->requiredDirectives) {
             $missingDirectives = [];
             foreach ($this->requiredDirectives as $directive) {
-                if (false === strpos($cspValue, $directive)) {
+                if (!str_contains($cspValue, $directive)) {
                     $missingDirectives[] = $directive;
                 }
             }
@@ -174,7 +174,7 @@ final class ResponseHasContentSecurityPolicy extends Constraint
         // Check missing values
         $missingValues = [];
         foreach ($this->contains as $value) {
-            if (false === strpos($cspValue, $value)) {
+            if (!str_contains($cspValue, $value)) {
                 $missingValues[] = $value;
             }
         }
@@ -185,7 +185,7 @@ final class ResponseHasContentSecurityPolicy extends Constraint
         // Check forbidden values that are present
         $forbiddenFound = [];
         foreach ($this->notContains as $value) {
-            if (false !== strpos($cspValue, $value)) {
+            if (str_contains($cspValue, $value)) {
                 $forbiddenFound[] = $value;
             }
         }
