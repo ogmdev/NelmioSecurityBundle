@@ -19,12 +19,14 @@ use Nelmio\SecurityBundle\ContentSecurityPolicy\Violation\Exception\NoDataExcept
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * @phpstan-type ReportData array{document-uri?: string, referrer?: string, blocked-uri?: string, effective-directive?: string, violated-directive?: string, original-policy?: string, disposition?: string, status-code?: int, script-sample?: string, source-file?: string, line-number?: int, column-number?: int}
+ * @phpstan-type ReportData array{document-uri?: string, referrer?: string, blocked-uri?: string|null, effective-directive?: string|null, violated-directive?: string, original-policy?: string, disposition?: string, status-code?: int, script-sample?: string, source-file?: string, line-number?: int, column-number?: int}
  */
 final class Report
 {
+    private const NULL_DEFAULTS_FOR_REQUEST_REPORTS = ['effective-directive' => null, 'blocked-uri' => null];
+
     /**
-     * @var array<string, int|string>
+     * @var array<string, int|string|null>
      *
      * @phpstan-var ReportData
      */
@@ -33,13 +35,13 @@ final class Report
     private ?string $userAgent;
 
     /**
-     * @param array<string, string> $data
+     * @param array<string, int|string|null> $data
      *
      * @phpstan-param ReportData $data
      */
     public function __construct(array $data = [], ?string $userAgent = null)
     {
-        $this->data = $data;
+        $this->data = self::keepWellTypedFields($data);
         $this->userAgent = $userAgent;
     }
 
@@ -53,10 +55,13 @@ final class Report
      */
     public function setProperty(string $key, $value): self
     {
-        if (!\is_string($value) && !\is_int($value)) {
-            throw new \TypeError('Expected string or int, got '.\gettype($value));
+        $property = self::keepWellTypedFields([$key => $value]);
+
+        if ([] === $property) {
+            throw new \TypeError(\sprintf('Report has no "%s" property accepting %s.', $key, get_debug_type($value)));
         }
-        $this->data[$key] = $value;
+
+        $this->data = array_merge($this->data, $property);
 
         return $this;
     }
@@ -133,7 +138,7 @@ final class Report
     }
 
     /**
-     * @return array<string, int|string>
+     * @return array<string, int|string|null>
      *
      * @phpstan-return ReportData
      */
@@ -171,18 +176,68 @@ final class Report
             return new self();
         }
 
-        $effective = $report['effective-directive'] ?? null;
+        $data = self::keepWellTypedFields($report);
 
-        if (null === $effective && isset($report['violated-directive'])) {
-            $split = explode(' ', $report['violated-directive']);
-            $effective = $split[0] ?? null;
+        if ([] === $data) {
+            throw new InvalidPayloadException('Content-Security-Policy Endpoint called without any valid "csp-report" field', 400);
         }
 
-        $blocked = $report['blocked-uri'] ?? null;
+        if (!isset($data['effective-directive']) && isset($data['violated-directive'])) {
+            $data['effective-directive'] = explode(' ', $data['violated-directive'], 2)[0];
+        }
 
-        $report['effective-directive'] = $effective;
-        $report['blocked-uri'] = $blocked;
+        $requestReport = new self($data, $request->headers->get('User-Agent'));
+        $requestReport->data += self::NULL_DEFAULTS_FOR_REQUEST_REPORTS;
 
-        return new self($report, $request->headers->get('User-Agent'));
+        return $requestReport;
+    }
+
+    /**
+     * @param array<mixed> $fields
+     *
+     * @phpstan-return ReportData
+     */
+    private static function keepWellTypedFields(array $fields): array
+    {
+        return array_filter([
+            'document-uri' => self::stringOrNull($fields, 'document-uri'),
+            'referrer' => self::stringOrNull($fields, 'referrer'),
+            'blocked-uri' => self::stringOrNull($fields, 'blocked-uri'),
+            'effective-directive' => self::stringOrNull($fields, 'effective-directive'),
+            'violated-directive' => self::stringOrNull($fields, 'violated-directive'),
+            'original-policy' => self::stringOrNull($fields, 'original-policy'),
+            'disposition' => self::stringOrNull($fields, 'disposition'),
+            'status-code' => self::intOrNull($fields, 'status-code'),
+            'script-sample' => self::stringOrNull($fields, 'script-sample'),
+            'source-file' => self::stringOrNull($fields, 'source-file'),
+            'line-number' => self::intOrNull($fields, 'line-number'),
+            'column-number' => self::intOrNull($fields, 'column-number'),
+        ], static fn ($value): bool => null !== $value);
+    }
+
+    /**
+     * @param array<mixed> $fields
+     */
+    private static function stringOrNull(array $fields, string $key): ?string
+    {
+        return isset($fields[$key]) && \is_string($fields[$key]) ? $fields[$key] : null;
+    }
+
+    /**
+     * @param array<mixed> $fields
+     */
+    private static function intOrNull(array $fields, string $key): ?int
+    {
+        $value = $fields[$key] ?? null;
+
+        if (\is_int($value)) {
+            return $value;
+        }
+
+        if (\is_string($value) && false !== $int = filter_var($value, \FILTER_VALIDATE_INT)) {
+            return $int;
+        }
+
+        return null;
     }
 }

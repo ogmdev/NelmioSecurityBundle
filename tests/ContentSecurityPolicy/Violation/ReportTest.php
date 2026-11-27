@@ -58,7 +58,88 @@ class ReportTest extends TestCase
             'csp-report' => $data,
         ], \JSON_THROW_ON_ERROR)));
 
-        $this->assertSame($data, $report->getData());
+        $this->assertSameReportData($data, $report);
         $this->assertFalse($report->isData());
+    }
+
+    /**
+     * @dataProvider provideCspReports
+     *
+     * @param array<mixed>                    $payload
+     * @param array<string, int|string|null> $expectedData
+     */
+    public function testFromRequestKeepsOnlyWellTypedFields(array $payload, array $expectedData): void
+    {
+        $report = Report::fromRequest(new Request([], [], [], [], [], [], json_encode([
+            'csp-report' => $payload,
+        ], \JSON_THROW_ON_ERROR)));
+
+        $this->assertSameReportData($expectedData, $report);
+    }
+
+    public static function provideCspReports(): iterable
+    {
+        yield 'directive derived from violated-directive, missing blocked-uri kept as null' => [
+            ['violated-directive' => 'script-src https://example.com'],
+            ['violated-directive' => 'script-src https://example.com', 'effective-directive' => 'script-src', 'blocked-uri' => null],
+        ];
+
+        yield 'non-string violated-directive' => [
+            ['document-uri' => 'https://example.com', 'violated-directive' => 123],
+            ['document-uri' => 'https://example.com', 'effective-directive' => null, 'blocked-uri' => null],
+        ];
+
+        yield 'non-string fields read by getters' => [
+            ['document-uri' => 'https://example.com', 'blocked-uri' => ['https://example.com'], 'effective-directive' => 42, 'source-file' => 7],
+            ['document-uri' => 'https://example.com', 'effective-directive' => null, 'blocked-uri' => null],
+        ];
+
+        yield 'int fields' => [
+            ['document-uri' => 'https://example.com', 'status-code' => '200', 'line-number' => 'twelve', 'column-number' => 3.5],
+            ['document-uri' => 'https://example.com', 'status-code' => 200, 'effective-directive' => null, 'blocked-uri' => null],
+        ];
+
+        yield 'unknown field' => [
+            ['document-uri' => 'https://example.com', 'unexpected' => 'value'],
+            ['document-uri' => 'https://example.com', 'effective-directive' => null, 'blocked-uri' => null],
+        ];
+    }
+
+    public function testFromRequestWithoutAnyValidField(): void
+    {
+        $this->expectException(InvalidPayloadException::class);
+        $this->expectExceptionMessage('Content-Security-Policy Endpoint called without any valid "csp-report" field');
+
+        Report::fromRequest(new Request([], [], [], [], [], [], '{"csp-report":{"violated-directive":123}}'));
+    }
+
+    public function testConstructorDropsIllTypedFields(): void
+    {
+        // @phpstan-ignore argument.type
+        $report = new Report(['violated-directive' => 123, 'blocked-uri' => ['https://example.com']]);
+
+        $this->assertNull($report->getDirective());
+        $this->assertNull($report->getUri());
+    }
+
+    public function testSetPropertyRejectsValueOfAnotherType(): void
+    {
+        $this->expectException(\TypeError::class);
+        $this->expectExceptionMessage('Report has no "blocked-uri" property accepting int.');
+
+        // @phpstan-ignore argument.type
+        (new Report())->setProperty('blocked-uri', 42);
+    }
+
+    /**
+     * @param array<string, int|string|null> $expectedData
+     */
+    private function assertSameReportData(array $expectedData, Report $report): void
+    {
+        $actualData = $report->getData();
+        ksort($expectedData);
+        ksort($actualData);
+
+        $this->assertSame($expectedData, $actualData);
     }
 }

@@ -2,6 +2,8 @@
 
 ### Unreleased
 * Added support for Symfony 8 and PHP 8.4
+* CSP violation reports keep only the known `csp-report` fields with their declared type (numeric strings accepted for `status-code`, `line-number`, `column-number`); a report without any valid field is rejected with a 400
+* `Report::setProperty()` throws a `TypeError` for an unknown field or a value of the wrong type
 
 ### 3.3.0 (2024-04-10)
 * Added `ExternalRedirectResponse` (#331)

@@ -25,24 +25,6 @@ parameters:
 			path: src/ContentSecurityPolicy/PolicyManager.php
 
 		-
-			message: '#^Parameter \#1 \$data of class Nelmio\\SecurityBundle\\ContentSecurityPolicy\\Violation\\Report constructor expects array\{document\-uri\?\: string, referrer\?\: string, blocked\-uri\?\: string, effective\-directive\?\: string, violated\-directive\?\: string, original\-policy\?\: string, disposition\?\: string, status\-code\?\: int, \.\.\.\}, non\-empty\-array\<mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/ContentSecurityPolicy/Violation/Report.php
-
-		-
-			message: '#^Parameter \#2 \$string of function explode expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/ContentSecurityPolicy/Violation/Report.php
-
-		-
-			message: '#^Property Nelmio\\SecurityBundle\\ContentSecurityPolicy\\Violation\\Report\:\:\$data \(array\{document\-uri\?\: string, referrer\?\: string, blocked\-uri\?\: string, effective\-directive\?\: string, violated\-directive\?\: string, original\-policy\?\: string, disposition\?\: string, status\-code\?\: int, \.\.\.\}\) does not accept non\-empty\-array\{document\-uri\?\: int\|string, referrer\?\: int\|string, blocked\-uri\?\: int\|string, effective\-directive\?\: int\|string, violated\-directive\?\: int\|string, original\-policy\?\: int\|string, disposition\?\: int\|string, status\-code\?\: int\|string, \.\.\.\}\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src/ContentSecurityPolicy/Violation/Report.php
-
-		-
 			message: '#^Parameter \#1 \$name of class Symfony\\Component\\HttpFoundation\\Cookie constructor expects string, string\|false given\.$#'
 			identifier: argument.type
 			count: 1
