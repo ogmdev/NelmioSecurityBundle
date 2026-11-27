@@ -21,12 +21,15 @@ jobs:
           - 6.4.*
           - 7.4.*
           - 8.1.*
+          - 8.2.*
         dependencies:
           - highest
         include:
           - php-version: 8.4
             dependencies: lowest
             symfony-version: 5.4.*
+          - symfony-version: 8.2.*
+            minimum-stability: RC
 
     steps:
       - name: Checkout
@@ -39,6 +42,10 @@ jobs:
           ini-values: memory_limit=-1, date.timezone=Europe/Paris, session.gc_probability=0
           php-version: ${{ matrix.php-version }}
           tools: flex
+
+      - name: Allow Symfony ${{ matrix.symfony-version }} pre-releases
+        if: matrix.minimum-stability
+        run: composer config minimum-stability ${{ matrix.minimum-stability }} && composer config prefer-stable true
 
       - name: Install Composer dependencies (${{ matrix.dependencies }})
         uses: ramsey/composer-install@v2
