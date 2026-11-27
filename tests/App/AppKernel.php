@@ -31,6 +31,9 @@ class AppKernel extends Kernel
         parent::__construct('test', false);
     }
 
+    /**
+     * @return list<FrameworkBundle|TwigBundle|NelmioSecurityBundle>
+     */
     public function registerBundles(): iterable
     {
         return [

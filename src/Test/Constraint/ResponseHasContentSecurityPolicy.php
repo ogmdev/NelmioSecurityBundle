@@ -101,7 +101,6 @@ final class ResponseHasContentSecurityPolicy extends Constraint
             return false;
         }
 
-        // Check required directives
         if (null !== $this->requiredDirectives) {
             foreach ($this->requiredDirectives as $directive) {
                 if (!str_contains($cspValue, $directive)) {
@@ -110,14 +109,12 @@ final class ResponseHasContentSecurityPolicy extends Constraint
             }
         }
 
-        // Check values that must be present
         foreach ($this->contains as $value) {
             if (!str_contains($cspValue, $value)) {
                 return false;
             }
         }
 
-        // Check values that must NOT be present
         foreach ($this->notContains as $value) {
             if (str_contains($cspValue, $value)) {
                 return false;
@@ -158,7 +155,6 @@ final class ResponseHasContentSecurityPolicy extends Constraint
 
         $issues = [];
 
-        // Check missing directives
         if (null !== $this->requiredDirectives) {
             $missingDirectives = [];
             foreach ($this->requiredDirectives as $directive) {
@@ -171,7 +167,6 @@ final class ResponseHasContentSecurityPolicy extends Constraint
             }
         }
 
-        // Check missing values
         $missingValues = [];
         foreach ($this->contains as $value) {
             if (!str_contains($cspValue, $value)) {
@@ -182,7 +177,6 @@ final class ResponseHasContentSecurityPolicy extends Constraint
             $issues[] = \sprintf('missing values: %s', implode(', ', $missingValues));
         }
 
-        // Check forbidden values that are present
         $forbiddenFound = [];
         foreach ($this->notContains as $value) {
             if (str_contains($cspValue, $value)) {

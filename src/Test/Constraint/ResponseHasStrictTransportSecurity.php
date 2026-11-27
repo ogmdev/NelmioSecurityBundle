@@ -64,17 +64,14 @@ final class ResponseHasStrictTransportSecurity extends Constraint
             return false;
         }
 
-        // Check max-age
         if (!str_contains($headerValue, \sprintf('max-age=%d', $this->maxAge))) {
             return false;
         }
 
-        // Check includeSubDomains
         if ($this->includeSubDomains && !str_contains($headerValue, 'includeSubDomains')) {
             return false;
         }
 
-        // Check preload
         if ($this->preload && !str_contains($headerValue, 'preload')) {
             return false;
         }
