@@ -15,6 +15,7 @@ namespace Nelmio\SecurityBundle\EventListener;
 
 use Nelmio\SecurityBundle\ContentSecurityPolicy\DirectiveSet;
 use Nelmio\SecurityBundle\ContentSecurityPolicy\DirectiveSetBuilderInterface;
+use Nelmio\SecurityBundle\ContentSecurityPolicy\InlineElementExtractor;
 use Nelmio\SecurityBundle\ContentSecurityPolicy\LegacyDirectiveSetBuilder;
 use Nelmio\SecurityBundle\ContentSecurityPolicy\NonceGeneratorInterface;
 use Nelmio\SecurityBundle\ContentSecurityPolicy\ShaComputerInterface;
@@ -100,7 +101,9 @@ final class ContentSecurityPolicyListener extends AbstractContentTypeRestrictabl
             return;
         }
 
-        $this->sha['script-src'][] = $this->shaComputer->computeForScript($html);
+        foreach (InlineElementExtractor::extractInlineElements($html, 'script') as $script) {
+            $this->sha['script-src'][] = $this->shaComputer->computeForScript($script);
+        }
     }
 
     public function addStyle(string $html): void
@@ -111,7 +114,9 @@ final class ContentSecurityPolicyListener extends AbstractContentTypeRestrictabl
             return;
         }
 
-        $this->sha['style-src'][] = $this->shaComputer->computeForStyle($html);
+        foreach (InlineElementExtractor::extractInlineElements($html, 'style') as $style) {
+            $this->sha['style-src'][] = $this->shaComputer->computeForStyle($style);
+        }
     }
 
     /**

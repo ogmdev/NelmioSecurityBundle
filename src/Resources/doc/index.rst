@@ -404,9 +404,28 @@ compute the message digest and insert it in your headers.
     </style>
     {% endcspstyle %}
 
+A block may hold several tags, such as the output of ``importmap()`` from
+Symfony AssetMapper. Each inline ``<script>`` or ``<style>`` tag gets its own
+digest, computed by the hash computer one tag at a time, tags inside a
+``<template>`` included. ``<script>`` tags with a ``src`` attribute, tags
+inside ``<noscript>``, ``<link>`` tags, HTML comments and the text between tags
+are left out: a block of external files only adds no digest, so those files
+still need their host or a nonce in ``script-src`` or ``style-src``. Tags are
+read with the HTML5 parser of PHP (``Dom\HTMLDocument``), so the digest matches
+what the browser hashes, Windows line breaks included. A block is rejected when
+it holds no ``<script>`` or ``<style>`` tag, when a tag is not closed, or when
+the tag sits inside ``<svg>`` or ``<math>``.
+
+.. code-block:: html+twig
+
+    {% cspscript %}
+        {{ importmap('app') }}
+    {% endcspscript %}
+
 If you're not using Twig, you can use message digest with the
 ``ContentSecurityPolicyListener``, it will automatically compute the message
-digest and add it to the response CSP header::
+digest and add it to the response CSP header. ``addScript()`` and
+``addStyle()`` accept the same blocks of several tags::
 
     $listener->addScript("<script>
         window.api_key = '{{ api_key }}';

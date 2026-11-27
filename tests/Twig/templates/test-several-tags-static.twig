@@ -1,0 +1,12 @@
+{% cspscript %}
+<link rel="modulepreload" href="/assets/app.js">
+<script type="importmap">{"imports":{"app":"/assets/app.js"}}</script>
+<script async src="/assets/es-module-shims.js"></script>
+<script type="module">import 'app';</script>
+{% endcspscript %}
+
+{% cspstyle %}
+<link rel="stylesheet" href="/assets/app.css">
+<style>body{ background: red; }</style>
+<style>p{ color: red; }</style>
+{% endcspstyle %}

@@ -50,6 +50,8 @@ class ShaComputerTest extends TestCase
             [$md, "<script crossorigin=\"anonymous\">console.log('hello world!');</script>"],
             [$md, "<SCRIPT>console.log('hello world!');</SCRIPT>"],
             [$md, "<SCRIPT crossorigin=\"anonymous\">console.log('hello world!');</SCRIPT>"],
+            'line breaks normalized like a browser' => ['sha256-bj/v2gcgn8WKT0lFhAFhq8WhkFa84Ior76HfAKqOq4w=', "<script>\r\nconsole.log('hello world!');\r\n</script>"],
+            'script tag written inside the script' => ['sha256-Nrvy7cA/g3sjaQSWLTBK/EYlpZYl6orqEpoyv2+GiSo=', '<script>document.write("<!--<script>x</script>-->");</script>'],
         ];
     }
 
@@ -103,7 +105,7 @@ class ShaComputerTest extends TestCase
         $this->expectException('InvalidArgumentException');
 
         $shaComputer = new ShaComputer('sha256');
-        $shaComputer->computeForScript($code);
+        $shaComputer->computeForStyle($code);
     }
 
     public static function provideInvalidScriptCode(): array

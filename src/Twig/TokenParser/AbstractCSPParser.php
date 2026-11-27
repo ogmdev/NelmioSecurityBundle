@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nelmio\SecurityBundle\Twig\TokenParser;
 
+use Nelmio\SecurityBundle\ContentSecurityPolicy\InlineElementExtractor;
 use Nelmio\SecurityBundle\ContentSecurityPolicy\ShaComputerInterface;
 use Nelmio\SecurityBundle\Twig\Node\CSPNode;
 use Twig\Node\TextNode;
@@ -40,13 +41,16 @@ abstract class AbstractCSPParser extends AbstractTokenParser
         $body = $this->parser->subparse([$this, 'decideCSPScriptEnd'], true);
         $this->parser->getStream()->expect(Token::BLOCK_END_TYPE);
 
-        $sha = null;
+        $shas = null;
         if ($body instanceof TextNode) {
             \assert(\is_string($body->getAttribute('data')));
-            $sha = $this->computeSha($body->getAttribute('data'));
+            $shas = [];
+            foreach ($this->extractInlineElements($body->getAttribute('data')) as $inlineElement) {
+                $shas[] = $this->computeSha($inlineElement);
+            }
         }
 
-        return new CSPNode($body, $lineno, $this->tag, $this->directive, $sha);
+        return new CSPNode($body, $lineno, $this->tag, $this->directive, $shas);
     }
 
     public function decideCSPScriptEnd(Token $token): bool
@@ -60,4 +64,18 @@ abstract class AbstractCSPParser extends AbstractTokenParser
     }
 
     abstract protected function computeSha(string $data): string;
+
+    /**
+     * @return list<string>
+     */
+    private function extractInlineElements(string $data): array
+    {
+        $elementNames = ['script-src' => 'script', 'style-src' => 'style'];
+
+        if (!isset($elementNames[$this->directive])) {
+            return [$data];
+        }
+
+        return InlineElementExtractor::extractInlineElements($data, $elementNames[$this->directive]);
+    }
 }

@@ -31,10 +31,16 @@ use Twig\Node\Node;
 #[YieldReady]
 final class CSPNode extends Node
 {
-    private ?string $sha;
+    /**
+     * @var list<string>|null
+     */
+    private ?array $shas;
     private string $directive;
 
-    public function __construct(Node $body, int $lineno, string $tag, string $directive, ?string $sha = null)
+    /**
+     * @param string|list<string>|null $sha
+     */
+    public function __construct(Node $body, int $lineno, string $tag, string $directive, string|array|null $sha = null)
     {
         if (class_exists(CaptureNode::class)) {
             if (TwigVersion::needsNodeTag()) {
@@ -50,7 +56,7 @@ final class CSPNode extends Node
         } else {
             parent::__construct(['body' => $body], [], $lineno);
         }
-        $this->sha = $sha;
+        $this->shas = \is_string($sha) ? [$sha] : $sha;
         $this->directive = $directive;
     }
 
@@ -76,8 +82,16 @@ final class CSPNode extends Node
             ;
         }
 
-        if (null !== $this->sha) {
-            $compiler->write("\$this->env->getRuntime('Nelmio\SecurityBundle\Twig\CSPRuntime')->getListener()->addSha('{$this->directive}', '{$this->sha}');\n");
+        if (null !== $this->shas) {
+            foreach ($this->shas as $sha) {
+                $compiler
+                    ->write("\$this->env->getRuntime('Nelmio\SecurityBundle\Twig\CSPRuntime')->getListener()->addSha(")
+                    ->string($this->directive)
+                    ->raw(', ')
+                    ->string($sha)
+                    ->raw(");\n")
+                ;
+            }
         } elseif ('script-src' === $this->directive) {
             $compiler->write("\$this->env->getRuntime('Nelmio\SecurityBundle\Twig\CSPRuntime')->getListener()->addScript(\$content);\n");
         } elseif ('style-src' === $this->directive) {

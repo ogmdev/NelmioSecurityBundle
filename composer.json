@@ -17,7 +17,8 @@
         }
     ],
     "require": {
-        "php": "^8.1",
+        "php": "^8.4",
+        "ext-dom": "*",
         "symfony/deprecation-contracts": "^2.5 || ^3",
         "symfony/framework-bundle": "^5.4 || ^6.4 || ^7.0 || ^8.0",
         "symfony/http-kernel": "^5.4 || ^6.4 || ^7.0 || ^8.0",

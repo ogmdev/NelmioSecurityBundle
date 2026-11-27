@@ -29,32 +29,12 @@ final class ShaComputer implements ShaComputerInterface
 
     public function computeForScript(string $html): string
     {
-        if (1 !== preg_match_all('/<script[^>]*+>/i', $html, $m)) {
-            throw new \InvalidArgumentException('Invalid script, you should use a single <script> tag.');
-        }
-
-        preg_match('/^\s*+<script[^>]*+>((?s).*)<\/script>\s*+$/i', $html, $matches);
-
-        if (!isset($matches[1])) {
-            throw new \InvalidArgumentException('Invalid script, no <script> tag found.');
-        }
-
-        return $this->compute($matches[1]);
+        return $this->compute(InlineElementExtractor::extractSingleElementContent($html, 'script'));
     }
 
     public function computeForStyle(string $html): string
     {
-        if (1 !== preg_match_all('/<style[^>]*+>/i', $html, $m)) {
-            throw new \InvalidArgumentException('Invalid script, you should use a single <style> tag.');
-        }
-
-        preg_match('/^\s*+<style[^>]*+>((?s).*)<\/style>\s*+$/i', $html, $matches);
-
-        if (!isset($matches[1])) {
-            throw new \InvalidArgumentException('Invalid script, no <style> tag found.');
-        }
-
-        return $this->compute($matches[1]);
+        return $this->compute(InlineElementExtractor::extractSingleElementContent($html, 'style'));
     }
 
     private function getFavorite(): string

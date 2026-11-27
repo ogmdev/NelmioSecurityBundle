@@ -4,6 +4,8 @@
 * Added support for Symfony 8 and PHP 8.4
 * CSP violation reports keep only the known `csp-report` fields with their declared type (numeric strings accepted for `status-code`, `line-number`, `column-number`); a report without any valid field is rejected with a 400
 * `Report::setProperty()` throws a `TypeError` for an unknown field or a value of the wrong type
+* Allowed `cspscript` and `cspstyle` blocks to hold several tags: each inline tag gets its own hash (#314)
+* Required PHP 8.4 and `ext-dom`: `ShaComputer` reads inline tags with `Dom\HTMLDocument`, so its hash matches the browser's for Windows line breaks and for a script tag written inside a script
 
 ### 3.3.0 (2024-04-10)
 * Added `ExternalRedirectResponse` (#331)

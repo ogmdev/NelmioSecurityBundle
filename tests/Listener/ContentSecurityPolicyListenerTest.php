@@ -131,6 +131,183 @@ class ContentSecurityPolicyListenerTest extends ListenerTestCase
         );
     }
 
+    /**
+     * @dataProvider provideScriptBlocksWithSeveralTags
+     *
+     * @param list<string> $expectedHashedScripts
+     */
+    public function testAddScriptHashesEachInlineScriptOfTheBlock(string $block, array $expectedHashedScripts): void
+    {
+        $hashedScripts = $this->recordHashedTags('computeForScript');
+
+        $listener = $this->buildSimpleListener(['script-src' => "'self'"]);
+        $response = $this->callListener($listener, '/', true, 'text/html', ['scripts' => [$block]]);
+
+        $this->assertSame($expectedHashedScripts, $hashedScripts->getArrayCopy());
+        $this->assertSame(
+            $this->expectedHeader('script-src', \count($expectedHashedScripts)),
+            $response->headers->get('Content-Security-Policy')
+        );
+    }
+
+    public static function provideScriptBlocksWithSeveralTags(): iterable
+    {
+        yield 'several inline scripts' => [
+            "<script>first();</script>\n<script>second();</script>",
+            ['<script>first();</script>', '<script>second();</script>'],
+        ];
+
+        yield 'external script between inline scripts' => [
+            '<script>first();</script><script src="/third-party.js"></script><SCRIPT>second();</SCRIPT>',
+            ['<script>first();</script>', '<script>second();</script>'],
+        ];
+
+        yield 'AssetMapper importmap() output' => [
+            <<<'HTML'
+                <link rel="modulepreload" href="/assets/app-1a2b3c.js">
+                <script type="importmap">
+                {
+                    "imports": {
+                        "app": "/assets/app-1a2b3c.js"
+                    }
+                }
+                </script>
+                <script async src="/assets/es-module-shims-4d5e6f.js"></script>
+                <script type="module">import 'app';</script>
+                HTML,
+            [
+                <<<'HTML'
+                    <script type="importmap">
+                    {
+                        "imports": {
+                            "app": "/assets/app-1a2b3c.js"
+                        }
+                    }
+                    </script>
+                    HTML,
+                '<script type="module">import \'app\';</script>',
+            ],
+        ];
+
+        yield 'one inline script after a link' => [
+            '<link rel="modulepreload" href="/app.js"><script>first();</script>',
+            ['<script>first();</script>'],
+        ];
+
+        yield 'external scripts only' => [
+            '<script src="/runtime.js"></script><script src="/app.js"></script>',
+            [],
+        ];
+
+        yield 'closing tag with whitespace' => [
+            "<script>first();</script >\n<script>second();</script\n>",
+            ['<script>first();</script>', '<script>second();</script>'],
+        ];
+
+        yield 'greater-than sign in an attribute before src' => [
+            '<script data-label="a>b" src="/app.js"></script><script>first();</script>',
+            ['<script>first();</script>'],
+        ];
+
+        yield 'script inside an HTML comment' => [
+            '<!-- <script>old();</script> --><script>first();</script><script>second();</script>',
+            ['<script>first();</script>', '<script>second();</script>'],
+        ];
+
+        yield 'single external script' => [
+            '<script src="/app.js" defer></script>',
+            [],
+        ];
+
+        yield 'script inside a template' => [
+            '<script>first();</script><template><script>cloned();</script></template>',
+            ['<script>first();</script>', '<script>cloned();</script>'],
+        ];
+
+        yield 'script inside noscript' => [
+            '<script>first();</script><noscript><script>fallback();</script></noscript>',
+            ['<script>first();</script>'],
+        ];
+
+        yield 'block closing the body' => [
+            '<script>first();</script><script>second();</script></body>',
+            ['<script>first();</script>', '<script>second();</script>'],
+        ];
+
+        yield 'script tag written inside a script' => [
+            '<script>document.write("<!--<script>x</script>-->");</script><script>second();</script>',
+            ['<script>document.write("<!--<script>x</script>-->");</script>', '<script>second();</script>'],
+        ];
+    }
+
+    /**
+     * @dataProvider provideStyleBlocksWithSeveralTags
+     *
+     * @param list<string> $expectedHashedStyles
+     */
+    public function testAddStyleHashesEachStyleOfTheBlock(string $block, array $expectedHashedStyles): void
+    {
+        $hashedStyles = $this->recordHashedTags('computeForStyle');
+
+        $listener = $this->buildSimpleListener(['style-src' => "'self'"]);
+        $response = $this->callListener($listener, '/', true, 'text/html', ['styles' => [$block]]);
+
+        $this->assertSame($expectedHashedStyles, $hashedStyles->getArrayCopy());
+        $this->assertSame(
+            $this->expectedHeader('style-src', \count($expectedHashedStyles)),
+            $response->headers->get('Content-Security-Policy')
+        );
+    }
+
+    public static function provideStyleBlocksWithSeveralTags(): iterable
+    {
+        yield 'several styles after a link' => [
+            '<link rel="stylesheet" href="/app.css"><style>body { color: red; }</style><style media="print">body { color: black; }</style>',
+            ['<style>body { color: red; }</style>', '<style media="print">body { color: black; }</style>'],
+        ];
+
+        yield 'style with a src attribute' => [
+            '<link rel="stylesheet" href="/app.css"><style src="/ignored.css">body { color: red; }</style>',
+            ['<style src="/ignored.css">body { color: red; }</style>'],
+        ];
+
+        yield 'Webpack Encore encore_entry_link_tags() output' => [
+            '<link rel="stylesheet" href="/build/app.css"><link rel="stylesheet" href="/build/vendors.css">',
+            [],
+        ];
+    }
+
+    /**
+     * @dataProvider provideInvalidScriptBlocks
+     */
+    public function testAddScriptRejectsAnInvalidBlock(string $block, string $expectedMessage): void
+    {
+        $listener = $this->buildSimpleListener(['script-src' => "'self'"]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage($expectedMessage);
+
+        $this->callListener($listener, '/', true, 'text/html', ['scripts' => [$block]]);
+    }
+
+    public static function provideInvalidScriptBlocks(): iterable
+    {
+        yield 'unclosed tag among several' => [
+            '<script>first();</script><script>second();',
+            'Invalid script, a tag of the block is not closed.',
+        ];
+
+        yield 'code without a script tag' => [
+            'console.log(1);',
+            'Invalid script, the block holds no <script> tag.',
+        ];
+
+        yield 'script inside an svg' => [
+            '<script>first();</script><svg><script>second();</script></svg>',
+            'Invalid script, a <script> tag inside <svg> or <math> cannot be hashed.',
+        ];
+    }
+
     public function testWithContentTypeRestriction(): void
     {
         $listener = $this->buildSimpleListener(['default-src' => "default.example.org 'self'"], false, true, ['text/html']);
@@ -537,6 +714,38 @@ class ContentSecurityPolicyListenerTest extends ListenerTestCase
         }
 
         return new ContentSecurityPolicyListener($dummyBuilder, $builder, $this->nonceGenerator, $this->shaComputer, $compatHeaders, $contentTypes);
+    }
+
+    /**
+     * @return \ArrayObject<int, string>
+     */
+    private function recordHashedTags(string $method): \ArrayObject
+    {
+        /** @var \ArrayObject<int, string> $hashedTags */
+        $hashedTags = new \ArrayObject();
+        $this->shaComputer = $this->createMock(ShaComputerInterface::class);
+        $this->shaComputer
+            ->method($method)
+            ->willReturnCallback(static function (string $html) use ($hashedTags): string {
+                $hashedTags[] = $html;
+
+                return 'sha-'.\count($hashedTags);
+            });
+
+        return $hashedTags;
+    }
+
+    private function expectedHeader(string $directive, int $hashCount): string
+    {
+        $sources = ["'self'"];
+        if ($hashCount > 0) {
+            $sources[] = "'unsafe-inline'";
+        }
+        for ($i = 1; $i <= $hashCount; ++$i) {
+            $sources[] = "'sha-".$i."'";
+        }
+
+        return $directive.' '.implode(' ', $sources);
     }
 
     private function createDirectiveSetBuilderMock(DirectiveSet $directiveSet): DirectiveSetBuilderInterface
