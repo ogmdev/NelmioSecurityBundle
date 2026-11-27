@@ -1,6 +1,6 @@
 # This CHANGELOG is here for historical reasons only, for newer changelog entries see github releases
 
-### 4.0.0
+### 4.0.0 (2026-11-27)
 * Required PHP 8.4 and `ext-dom`: `ShaComputer` reads inline tags with `Dom\HTMLDocument`, so its hash matches the browser's for Windows line breaks and for a script tag written inside a script
 * Dropped support for Symfony 6.3
 * Allowed `cspscript` and `cspstyle` blocks to hold several tags: each inline tag gets its own hash (#314)
