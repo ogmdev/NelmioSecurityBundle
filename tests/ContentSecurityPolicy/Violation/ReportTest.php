@@ -65,7 +65,7 @@ class ReportTest extends TestCase
     /**
      * @dataProvider provideCspReports
      *
-     * @param array<mixed>                    $payload
+     * @param array<mixed>                   $payload
      * @param array<string, int|string|null> $expectedData
      */
     public function testFromRequestKeepsOnlyWellTypedFields(array $payload, array $expectedData): void
