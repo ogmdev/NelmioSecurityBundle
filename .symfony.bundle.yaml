@@ -5,4 +5,4 @@ maintained_branches:
 current_branch: master
 dev_branch: master
 doc_dir: src/Resources/doc/
-dev_branch_alias: 3.x
+dev_branch_alias: 4.x
